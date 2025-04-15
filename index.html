@@ -97,9 +97,8 @@
     console.log("Incomplete payment found:", payment);
   });
 }
-    }
 
-    function logVisit(business) {
+function logVisit(business) {
       let visits = JSON.parse(localStorage.getItem('rewards')) || {};
       visits[business] = (visits[business] || 0) + 1;
       localStorage.setItem('rewards', JSON.stringify(visits));
