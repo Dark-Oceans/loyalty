@@ -4,7 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Coinnect</title>
-  <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+  <script src="https://sdk.minepi.com/pi-sdk.js">
+function bypassLogin() {
+  document.getElementById('login-section').style.display = 'none';
+  document.getElementById('app-content').style.display = 'block';
+  document.getElementById('username').innerText = 'TestUser';
+  document.getElementById('uid').innerText = '123456789';
+}
+</script>
 
 <style>
     body {
@@ -94,11 +101,12 @@
   <div style="height: 2rem;"></div>
   <div class="card">
     <p>Login with your Pi Network account to continue.</p>
-    <button onclick="loginWithPi()">Login with Pi</button>
+    <button onclick="bypassLogin()">Continue (Test Mode)</button>
   </div>
 </div>
 
   <div id="app-content" class="card">
+    <p style="font-size: 0.8rem; color: orange;">Test mode active – Pi login is disabled.</p>
     <h2>Hello, <span id="username"></span>!</h2>
     <p>You are now logged in via Pi Network.</p>
     <p><strong>UID:</strong> <span id="uid"></span></p>
