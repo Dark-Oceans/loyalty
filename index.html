@@ -34,7 +34,7 @@ function fillGeolocation() {
   }
 }
 
-$1
+
   <style>
     body {
       margin: 0;
@@ -185,8 +185,7 @@ $1
         <button onclick='showProfile("${name}")' style='margin-top:0.5rem; background:#ffb84d; border:none; padding:0.5rem 1rem; border-radius:8px; font-weight:bold; cursor:pointer; color:#000;'>View</button>
       </div>
     `;
-  }
-};
+  };
       for (const [name, info] of Object.entries(listings)) {
         container.innerHTML += `
           <div style="min-width:280px; background:#112021; border-radius:16px; padding:1rem; box-shadow:0 4px 12px rgba(0,0,0,0.3);">
@@ -198,7 +197,50 @@ $1
         `;
       }
     }
-  </script>
+  function downloadListings() {
+  const data = localStorage.getItem("bizListings") || '{}';
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'coinnect-business-listings.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importListings() {
+  const fileInput = document.getElementById('importFile');
+  if (!fileInput.files.length) {
+    alert('Please choose a file first.');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (typeof data === 'object') {
+        localStorage.setItem('bizListings', JSON.stringify(data));
+        alert('Listings imported successfully!');
+        showBrowse();
+      } else {
+        alert('Invalid file format.');
+      }
+    } catch (err) {
+      alert('Error reading file: ' + err.message);
+    }
+  };
+  reader.readAsText(fileInput.files[0]);
+}';
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'coinnect-business-listings.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+</script>
 
   <!-- Bottom Nav Button -->
   <button onclick="goBack()" style="position:absolute; bottom:1.5rem; left:50%; transform:translateX(-50%); background:#ffb84d; color:#000; padding:1rem 2rem; border:none; border-radius:8px; font-weight:bold; z-index:4;">Back</button>
@@ -219,10 +261,12 @@ $1
   $1
   $1
   <div id="image-preview" style="margin-top:1rem;"></div>
-  <button onclick="saveListing()">Save Listing</button>
+  <button onclick="importListings()">Import Listings</button>
+  <input type="file" id="importFile" accept="application/json" style="margin-top: 1rem; color: #fff;">
+  $1
   <button onclick="goBack()" style="background:none; color:#ffb84d; margin-top:1rem;">Back</button>
+  <button onclick="downloadListings()" style="background:none; color:#ffb84d; margin-top:1rem;">Download All Listings</button>
 </div>
-
 <!-- Business Listings Browser -->
 <div id="browse-section" class="card" style="display:none;">
   <h2>Browse Businesses</h2>
@@ -296,7 +340,7 @@ function loginWithPi() {
   document.getElementById("profile-content").innerHTML = `
     <h3>Description</h3>
     <p>${biz.description}</p>
-  ${biz.image ? `<img src="${biz.image}" alt="${name}" style="width:100%; border-radius:12px; margin-top:1rem;">` : ''}
+    ${biz.image ? `<img src="${biz.image}" alt="${name}" style="width:100%; border-radius:12px; margin-top:1rem;">` : ''}
   `;
   document.getElementById("profile-section").style.display = 'block';
 }
@@ -321,8 +365,11 @@ function loginWithPi() {
       document.getElementById('profile-section').style.display = 'none';
     }
 
-    if (isInPiBrowser()) {
-      document.getElementById('login-section').style.display = 'block';
+    const testMode = false; // Set to true to bypass login for testing
+
+if (isInPiBrowser() || testMode) {
+      if (!testMode) document.getElementById('login-section').style.display = 'block';
+  else document.getElementById('app-content').style.display = 'block';
     } else {
       document.getElementById('not-in-pi-browser').style.display = 'block';
     }
