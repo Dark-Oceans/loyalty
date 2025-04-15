@@ -4,38 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Coinnect</title>
-  <script src="https://sdk.minepi.com/pi-sdk.js">function saveListing() {
-  const name = document.getElementById("biz-name").value.trim();
-  const rating = document.getElementById("biz-rating").value.trim();
-  const description = document.getElementById("biz-description").value.trim();
-  if (!name || !rating || !description) {
-    alert("Please complete all fields.");
-    return;
-  }
-  const listings = JSON.parse(localStorage.getItem("bizListings")) || {};
-  const image = document.getElementById("biz-image").value.trim();
-  const lat = document.getElementById("biz-lat").value.trim();
-  const lng = document.getElementById("biz-lng").value.trim();
-  listings[name] = { rating, description, image, lat, lng };
-  localStorage.setItem("bizListings", JSON.stringify(listings));
-  alert("Listing saved.");
-  showProfile(name);
-}
-function fillGeolocation() {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(function(position) {
-      document.getElementById('biz-lat').value = position.coords.latitude.toFixed(6);
-      document.getElementById('biz-lng').value = position.coords.longitude.toFixed(6);
-    }, function(error) {
-      alert('Could not get location: ' + error.message);
-    });
-  } else {
-    alert('Geolocation not supported by this browser.');
-  }
-}
-
-
-  <style>
+  <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+<script>
+// Moved Pi app logic to comply with PiOS and avoid inline script in external script tag.
+</script>
+<style>
     body {
       margin: 0;
       font-family: Arial, sans-serif;
@@ -251,7 +224,7 @@ function importListings() {
   <h2>Business Listing Editor</h2>
   <p style="color:#ccc">Submit or update a business listing</p>
   <label>Name:<br><input type="text" id="biz-name" style="width:100%; padding:0.5rem; border-radius:8px; margin-bottom:1rem;"></label>
-  $1
+  
   <label>Description:<br><textarea id="biz-description" rows="4" style="width:100%; padding:0.5rem; border-radius:8px; margin-bottom:1rem;"></textarea></label>
   <label>Latitude:<br><input type="number" id="biz-lat" step="any" style="width:100%; padding:0.5rem; border-radius:8px; margin-bottom:1rem;"></label>
   $1
@@ -344,16 +317,7 @@ function loginWithPi() {
   `;
   document.getElementById("profile-section").style.display = 'block';
 }
-      };
-      const biz = data[name];
-      document.getElementById("profile-title").innerText = name;
-      document.getElementById("profile-rating").innerText = `⭐ ${biz.rating}`;
-      document.getElementById("profile-content").innerHTML = `
-        <h3>Description</h3>
-        <p>${biz.description}</p>
-      `;
-      document.getElementById("profile-section").style.display = 'block';
-    }
+      }
 
     function hideAllSections() {
   document.getElementById('browse-section')?.style.display = 'none';
