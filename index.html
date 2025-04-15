@@ -183,11 +183,14 @@ function isInPiBrowser() {
 }
 
 function loginWithPi() {
+  document.getElementById("ua-debug").innerText = "Login button clicked.";
   if (!window.Pi) {
     alert("Pi SDK not found. Please open in Pi Browser.");
     return;
   }
+  document.getElementById("ua-debug").innerText = "Initializing Pi SDK...";
   Pi.init({ version: "2.0" });
+  document.getElementById("ua-debug").innerText = "Calling Pi.authenticate...";
   Pi.authenticate(scopes, function(auth) {
     document.getElementById('login-section').style.display = 'none';
     document.getElementById('app-content').style.display = 'block';
