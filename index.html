@@ -11,6 +11,12 @@ function bypassLogin() {
   document.getElementById('username').innerText = 'TestUser';
   document.getElementById('uid').innerText = '123456789';
 }
+function bypassLogin() {
+  document.getElementById('login-section').style.display = 'none';
+  document.getElementById('app-content').style.display = 'block';
+  document.getElementById('username').innerText = 'TestUser';
+  document.getElementById('uid').innerText = '123456789';
+}
 </script>
 
 <style>
