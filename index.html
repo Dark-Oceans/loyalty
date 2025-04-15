@@ -216,9 +216,13 @@ function loginWithPi() {
 }
 
 window.onload = function() {
-  if (isInPiBrowser() || testMode) {
-    if (!testMode) document.getElementById('login-section').style.display = 'block';
-    else document.getElementById('app-content').style.display = 'block';
+  if (testMode) {
+    document.getElementById('login-section').style.display = 'none';
+    document.getElementById('app-content').style.display = 'block';
+    document.getElementById('username').innerText = 'TestUser';
+    document.getElementById('uid').innerText = '123456789';
+  } else if (isInPiBrowser()) {
+    document.getElementById('login-section').style.display = 'block';
   } else {
     document.getElementById('not-in-pi-browser').style.display = 'block';
   }
