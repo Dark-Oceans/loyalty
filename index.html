@@ -239,6 +239,41 @@ function showProfile(name = "Stonecup Café") {
 
 <script src="https://sdk.minepi.com/pi-sdk.js"></script>
 <script>
+const scopes = ['username', 'payments'];
+const testMode = false;
+
+function isInPiBrowser() {
+  const isAvailable = typeof window.Pi !== 'undefined';
+  document.getElementById("ua-debug").innerText = isAvailable ? "Pi SDK found" : "Pi SDK not found";
+  return isAvailable;
+}
+
+function loginWithPi() {
+  if (!window.Pi) {
+    alert("Pi SDK not found. Please open in Pi Browser.");
+    return;
+  }
+  Pi.init({ version: "2.0" });
+  Pi.authenticate(scopes, function(auth) {
+    document.getElementById('login-section').style.display = 'none';
+    document.getElementById('app-content').style.display = 'block';
+    document.getElementById('username').innerText = auth.user.username;
+    document.getElementById('uid').innerText = auth.user.uid;
+  }, function(error) {
+    alert("Authentication failed: " + error);
+  });
+}
+
+window.onload = function() {
+  if (isInPiBrowser() || testMode) {
+    if (!testMode) document.getElementById('login-section').style.display = 'block';
+    else document.getElementById('app-content').style.display = 'block';
+  } else {
+    document.getElementById('not-in-pi-browser').style.display = 'block';
+  }
+};
+</script>
+<script>
 window.onload = function() {
 $1document.getElementById('login-section').style.display = testMode ? 'none' : 'block';
   if (testMode) document.getElementById('app-content').style.display = 'block';
