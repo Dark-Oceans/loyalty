@@ -18,7 +18,7 @@
 <body>
   <p id="ua-debug" style="font-size: 0.7rem; color: gray;"></p>
 
-$1
+<div id="not-in-pi-browser" class="card">
     <h2>Open in Pi Browser</h2>
     <p>This app must be opened inside the Pi Browser to log in and use Pi features.</p>
   </div>
@@ -83,7 +83,7 @@ $1
     function isInPiBrowser() {
   const ua = navigator.userAgent.toLowerCase();
   document.getElementById("ua-debug").innerText = ua;
-  return ua.includes("pibrowser") || ua.includes("pi");
+  return ua.includes("pibrowser");
 }
 
     function loginWithPi() {
