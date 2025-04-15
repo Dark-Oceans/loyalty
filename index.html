@@ -87,17 +87,16 @@
 }
 
     function loginWithPi() {
-      Pi.init({ version: "2.0", sandbox: true });
-      Pi.authenticate(scopes, onLoginSuccess, onIncompletePaymentFound)
-        .then(auth => {
-          document.getElementById('login-section').style.display = 'none';
-          document.getElementById('app-content').style.display = 'block';
-          document.getElementById('username').innerText = auth.user.username;
-          document.getElementById('uid').innerText = auth.user.uid;
-        })
-        .catch(error => {
-          alert("Login failed: " + error);
-        });
+  Pi.init({ version: "2.0", sandbox: true });
+  Pi.authenticate(scopes, function(auth) {
+    document.getElementById('login-section').style.display = 'none';
+    document.getElementById('app-content').style.display = 'block';
+    document.getElementById('username').innerText = auth.user.username;
+    document.getElementById('uid').innerText = auth.user.uid;
+  }, function(payment) {
+    console.log("Incomplete payment found:", payment);
+  });
+}
     }
 
     function logVisit(business) {
