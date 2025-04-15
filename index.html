@@ -4,10 +4,74 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Coinnect</title>
-  <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-<script>
-// Moved Pi app logic to comply with PiOS and avoid inline script in external script tag.
+  <script src="https://sdk.minepi.com/pi-sdk.js">
+
+function showDirectory() {
+  hideAllSections();
+  document.getElementById('directory-section').style.display = 'block';
+}
+
+function showRewards() {
+  hideAllSections();
+  document.getElementById('rewards-section').style.display = 'block';
+}
+
+function showEditor() {
+  hideAllSections();
+  document.getElementById('editor-section').style.display = 'block';
+}
+
+function showBrowse() {
+  hideAllSections();
+  const container = document.getElementById("biz-listings");
+  const listings = JSON.parse(localStorage.getItem("bizListings")) || {};
+  container.innerHTML = Object.keys(listings).length === 0 ? '<p>No listings found.</p>' : '';
+  for (const [name, info] of Object.entries(listings)) {
+    container.innerHTML += `
+      <div class='business-card clickable' onclick='showProfile("${name}")'>
+        <strong>${name}</strong><br>
+        ⭐ ${info.rating}<br>
+        ${info.image ? `<img src='${info.image}' style='width:100%; margin-top:0.5rem; border-radius:8px;'>` : ''}
+        <p style='margin-top:0.5rem;'>${info.description}</p>
+      </div>
+    `;
+  }
+  document.getElementById('browse-section').style.display = 'block';
+}
+
+function saveListing() {
+  const name = document.getElementById("biz-name").value.trim();
+  const rating = document.getElementById("biz-rating").value.trim();
+  const description = document.getElementById("biz-description").value.trim();
+  const image = document.getElementById("biz-image").value.trim();
+  const lat = document.getElementById("biz-lat").value.trim();
+  const lng = document.getElementById("biz-lng").value.trim();
+  if (!name || !rating || !description) {
+    alert("Please complete all fields.");
+    return;
+  }
+  const listings = JSON.parse(localStorage.getItem("bizListings")) || {};
+  listings[name] = { rating, description, image, lat, lng };
+  localStorage.setItem("bizListings", JSON.stringify(listings));
+  alert("Listing saved.");
+  showProfile(name);
+}
+
+function showProfile(name = "Stonecup Café") {
+  hideAllSections();
+  const data = JSON.parse(localStorage.getItem("bizListings")) || {};
+  const biz = data[name] || { rating: "N/A", description: "No description available." };
+  document.getElementById("profile-title").innerText = name;
+  document.getElementById("profile-rating").innerText = `⭐ ${biz.rating}`;
+  document.getElementById("profile-content").innerHTML = `
+    <h3>Description</h3>
+    <p>${biz.description}</p>
+    ${biz.image ? `<img src="${biz.image}" alt="${name}" style="width:100%; border-radius:12px; margin-top:1rem;">` : ''}
+  `;
+  document.getElementById("profile-section").style.display = 'block';
+}
 </script>
+
 <style>
     body {
       margin: 0;
@@ -142,8 +206,81 @@
     <!-- Dynamic content inserted here -->
   </div>
 
-  <script>
-    function populateMapCarousel() {
+<!-- Additional Sections -->
+<div id="directory-section" class="card" style="display:none;">
+  <h2>Business Directory</h2>
+  <p>This section will soon list available businesses.</p>
+  <button onclick="goBack()" style="background:none; color:#ffb84d; margin-top:1rem;">Back</button>
+</div>
+
+<div id="rewards-section" class="card" style="display:none;">
+  <h2>Your Rewards</h2>
+  <p>Track your visits and available redemptions here.</p>
+  <button onclick="goBack()" style="background:none; color:#ffb84d; margin-top:1rem;">Back</button>
+</div>
+
+<div id="editor-section" class="card" style="display:none;">
+  <h2>Add a Business</h2>
+  <label>Name:<br><input type="text" id="biz-name" style="width:100%; padding:0.5rem; border-radius:8px;"></label><br><br>
+  <label>Rating:<br><input type="number" id="biz-rating" max="5" min="1" step="0.1" style="width:100%; padding:0.5rem; border-radius:8px;"></label><br><br>
+  <label>Description:<br><textarea id="biz-description" rows="3" style="width:100%; padding:0.5rem; border-radius:8px;"></textarea></label><br><br>
+  <label>Image URL:<br><input type="url" id="biz-image" style="width:100%; padding:0.5rem; border-radius:8px;"></label><br><br>
+  <label>Latitude:<br><input type="number" id="biz-lat" step="any" style="width:100%; padding:0.5rem; border-radius:8px;"></label><br><br>
+  <label>Longitude:<br><input type="number" id="biz-lng" step="any" style="width:100%; padding:0.5rem; border-radius:8px;"></label><br><br>
+  <button onclick="saveListing()">Save Listing</button>
+  <button onclick="goBack()" style="background:none; color:#ffb84d; margin-top:1rem;">Back</button>
+</div>
+
+<div id="browse-section" class="card" style="display:none;">
+  <h2>Browse Listings</h2>
+  <div id="biz-listings"></div>
+  <button onclick="goBack()" style="background:none; color:#ffb84d; margin-top:1rem;">Back</button>
+</div>
+
+<script src="https://sdk.minepi.com/pi-sdk.js"></script>
+<script>
+const scopes = ['username', 'payments'];
+const testMode = false;
+
+function isInPiBrowser() {
+  const isAvailable = typeof window.Pi !== 'undefined';
+  document.getElementById("ua-debug").innerText = isAvailable ? "Pi SDK found" : "Pi SDK not found";
+  return isAvailable;
+}
+
+if (isInPiBrowser() || testMode) {
+  if (!testMode) document.getElementById('login-section').style.display = 'block';
+  else document.getElementById('app-content').style.display = 'block';
+} else {
+  document.getElementById('not-in-pi-browser').style.display = 'block';
+}
+
+function loginWithPi() {
+  Pi.init({ version: "2.0" });
+  Pi.authenticate(scopes, function(auth) {
+    document.getElementById('login-section').style.display = 'none';
+    document.getElementById('app-content').style.display = 'block';
+    document.getElementById('username').innerText = auth.user.username;
+    document.getElementById('uid').innerText = auth.user.uid;
+  }, function(payment) {
+    console.log("Incomplete payment found:", payment);
+  });
+}
+
+function hideAllSections() {
+  ['login-section','app-content','directory-section','rewards-section','profile-section','map-section'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+}
+
+function showMap() {
+  hideAllSections();
+  document.getElementById('map-section').style.display = 'block';
+  populateMapCarousel();
+}
+
+function populateMapCarousel() {
   const container = document.getElementById("map-carousel");
   container.innerHTML = "";
   const listings = JSON.parse(localStorage.getItem("bizListings")) || {};
@@ -158,185 +295,9 @@
         <button onclick='showProfile("${name}")' style='margin-top:0.5rem; background:#ffb84d; border:none; padding:0.5rem 1rem; border-radius:8px; font-weight:bold; cursor:pointer; color:#000;'>View</button>
       </div>
     `;
-  };
-      for (const [name, info] of Object.entries(listings)) {
-        container.innerHTML += `
-          <div style="min-width:280px; background:#112021; border-radius:16px; padding:1rem; box-shadow:0 4px 12px rgba(0,0,0,0.3);">
-            <p style='margin:0; color:#ffb84d; font-weight:bold;'>${name}</p>
-            <p style='margin:0.25rem 0; color:#ccc; font-size:0.9rem;'>⭐ ${info.rating}</p>
-            ${info.image ? `<img src='${info.image}' alt='${name}' style='width:100%; border-radius:8px; margin-top:0.5rem;'>` : ''}
-            <button onclick='showProfile("${name}")' style='margin-top:0.5rem; background:#ffb84d; border:none; padding:0.5rem 1rem; border-radius:8px; font-weight:bold; cursor:pointer; color:#000;'>View</button>
-          </div>
-        `;
-      }
-    }
-  function downloadListings() {
-  const data = localStorage.getItem("bizListings") || '{}';
-  const blob = new Blob([data], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'coinnect-business-listings.json';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function importListings() {
-  const fileInput = document.getElementById('importFile');
-  if (!fileInput.files.length) {
-    alert('Please choose a file first.');
-    return;
   }
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const data = JSON.parse(e.target.result);
-      if (typeof data === 'object') {
-        localStorage.setItem('bizListings', JSON.stringify(data));
-        alert('Listings imported successfully!');
-        showBrowse();
-      } else {
-        alert('Invalid file format.');
-      }
-    } catch (err) {
-      alert('Error reading file: ' + err.message);
-    }
-  };
-  reader.readAsText(fileInput.files[0]);
-}';
-  const blob = new Blob([data], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'coinnect-business-listings.json';
-  a.click();
-  URL.revokeObjectURL(url);
 }
-
 </script>
 
-  <!-- Bottom Nav Button -->
-  <button onclick="goBack()" style="position:absolute; bottom:1.5rem; left:50%; transform:translateX(-50%); background:#ffb84d; color:#000; padding:1rem 2rem; border:none; border-radius:8px; font-weight:bold; z-index:4;">Back</button>
-</div>
-
-<!-- Business Owner Listing Editor -->
-<div id="editor-section" class="card" style="display:none;">
-  <h2>Business Listing Editor</h2>
-  <p style="color:#ccc">Submit or update a business listing</p>
-  <label>Name:<br><input type="text" id="biz-name" style="width:100%; padding:0.5rem; border-radius:8px; margin-bottom:1rem;"></label>
-  
-  <label>Description:<br><textarea id="biz-description" rows="4" style="width:100%; padding:0.5rem; border-radius:8px; margin-bottom:1rem;"></textarea></label>
-  <label>Latitude:<br><input type="number" id="biz-lat" step="any" style="width:100%; padding:0.5rem; border-radius:8px; margin-bottom:1rem;"></label>
-  $1
-  <button onclick="fillGeolocation()" style="background:#444; color:#ffb84d; margin-bottom:1rem;">Use My Location</button>
-  <label>Image URL:<br><input type="url" id="biz-image" placeholder="https://..." style="width:100%; padding:0.5rem; border-radius:8px; margin:1rem 0;"></label>
-  <div id="image-preview" style="margin-top:1rem;"></div>
-  $1
-  $1
-  <div id="image-preview" style="margin-top:1rem;"></div>
-  <button onclick="importListings()">Import Listings</button>
-  <input type="file" id="importFile" accept="application/json" style="margin-top: 1rem; color: #fff;">
-  $1
-  <button onclick="goBack()" style="background:none; color:#ffb84d; margin-top:1rem;">Back</button>
-  <button onclick="downloadListings()" style="background:none; color:#ffb84d; margin-top:1rem;">Download All Listings</button>
-</div>
-<!-- Business Listings Browser -->
-<div id="browse-section" class="card" style="display:none;">
-  <h2>Browse Businesses</h2>
-  <div id="biz-listings"></div>
-  <button onclick="goBack()" style="background:none; color:#ffb84d; margin-top:1rem;">Back</button>
-</div>
-$1
-    document.getElementById("biz-image").addEventListener("input", function() {
-      const url = this.value.trim();
-      const preview = document.getElementById("image-preview");
-      if (url && (url.startsWith("http://") || url.startsWith("https://"))) {
-        preview.innerHTML = `<img src="${url}" alt="preview" style="width:100%; border-radius:12px;">`;
-      } else {
-        preview.innerHTML = '';
-      }
-    });
-const scopes = ['username', 'payments'];
-    function isInPiBrowser() {
-      const isAvailable = typeof window.Pi !== 'undefined';
-      document.getElementById("ua-debug").innerText = isAvailable ? "Pi SDK found" : "Pi SDK not found";
-      return isAvailable;
-    }
-
-    function showMap() {
-  hideAllSections();
-  document.getElementById('map-section').style.display = 'block';
-  populateMapCarousel();
-}
-
-    function showEditor() {
-  hideAllSections();
-  document.getElementById('editor-section').style.display = 'block';
-}
-
-function showBrowse() {
-  hideAllSections();
-  const container = document.getElementById("biz-listings");
-  const listings = JSON.parse(localStorage.getItem("bizListings")) || {};
-  container.innerHTML = Object.keys(listings).length === 0 ? '<p>No listings found.</p>' : '';
-  for (const [name, info] of Object.entries(listings)) {
-    container.innerHTML += `
-      <div class='business-card clickable' onclick='showProfile("${name}")'>
-        <strong>${name}</strong><br>
-        ⭐ ${info.rating}<br>
-        ${info.image ? `<img src='${info.image}' style='width:100%; margin-top:0.5rem; border-radius:8px;'>` : ''}
-        <p style='margin-top:0.5rem;'>${info.description}</p>
-      </div>
-    `;
-  }
-  document.getElementById('browse-section').style.display = 'block';
-}
-
-function loginWithPi() {
-      Pi.init({ version: "2.0" });
-      Pi.authenticate(scopes, function(auth) {
-        document.getElementById('login-section').style.display = 'none';
-        document.getElementById('app-content').style.display = 'block';
-        document.getElementById('username').innerText = auth.user.username;
-        document.getElementById('uid').innerText = auth.user.uid;
-      }, function(payment) {
-        console.log("Incomplete payment found:", payment);
-      });
-    }
-
-    function showProfile(name = "Stonecup Café") {
-  hideAllSections();
-  const data = JSON.parse(localStorage.getItem("bizListings")) || {};
-  const biz = data[name] || { rating: "N/A", description: "No description available." };
-  document.getElementById("profile-title").innerText = name;
-  document.getElementById("profile-rating").innerText = `⭐ ${biz.rating}`;
-  document.getElementById("profile-content").innerHTML = `
-    <h3>Description</h3>
-    <p>${biz.description}</p>
-    ${biz.image ? `<img src="${biz.image}" alt="${name}" style="width:100%; border-radius:12px; margin-top:1rem;">` : ''}
-  `;
-  document.getElementById("profile-section").style.display = 'block';
-}
-      }
-
-    function hideAllSections() {
-  document.getElementById('browse-section')?.style.display = 'none';
-  document.getElementById('editor-section')?.style.display = 'none';
-      document.getElementById('map-section')?.style.display = 'none';
-      document.getElementById('app-content').style.display = 'none';
-      document.getElementById('directory-section')?.style.display = 'none';
-      document.getElementById('rewards-section')?.style.display = 'none';
-      document.getElementById('profile-section').style.display = 'none';
-    }
-
-    const testMode = false; // Set to true to bypass login for testing
-
-if (isInPiBrowser() || testMode) {
-      if (!testMode) document.getElementById('login-section').style.display = 'block';
-  else document.getElementById('app-content').style.display = 'block';
-    } else {
-      document.getElementById('not-in-pi-browser').style.display = 'block';
-    }
-  </script>
 </body>
 </html>
