@@ -1,4 +1,3 @@
-// Updated with localStorage tracking for rewards
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,27 +6,95 @@
   <title>Coinnect</title>
   <script src="https://sdk.minepi.com/pi-sdk.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; padding: 2rem; background: #f8f8f8; }
-    .card { background: white; padding: 2rem; border-radius: 12px; max-width: 500px; margin: 2rem auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-    button { background: #ffcc00; border: none; padding: 1rem 2rem; font-size: 1rem; border-radius: 8px; cursor: pointer; }
-    #login-section, #app-content, #directory-section, #rewards-section, #profile-section, #not-in-pi-browser { display: none; }
-    .business-card, .reward-card, .profile-card { border: 1px solid #ccc; padding: 1rem; margin: 1rem 0; border-radius: 8px; text-align: left; }
-    .clickable { cursor: pointer; color: #0077cc; text-decoration: underline; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0e1a1c;
+      color: #f0f0f0;
+    }
+    .card {
+      background: #112021;
+      padding: 2rem;
+      border-radius: 12px;
+      max-width: 500px;
+      margin: 2rem auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    button {
+      background: #ffb84d;
+      border: none;
+      padding: 1rem 2rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      color: #000;
+      margin-top: 1rem;
+    }
+    #login-section, #app-content, #directory-section, #rewards-section, #profile-section, #not-in-pi-browser {
+      display: none;
+    }
+    .business-card, .reward-card, .profile-card {
+      border: 1px solid #2c3e3e;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 8px;
+      text-align: left;
+      background: #1a2d2f;
+    }
+    .clickable {
+      cursor: pointer;
+      color: #ffb84d;
+      text-decoration: none;
+    }
+    .hero-image {
+      width: 100%;
+      height: 250px;
+      background: url('https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?fit=crop&w=800&q=80') center center/cover no-repeat;
+      position: relative;
+    }
+    .hero-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(to bottom, rgba(14,26,28,0.1), #0e1a1c);
+    }
+    .hero-content {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      z-index: 2;
+    }
+    .hero-content h2 {
+      margin: 0;
+      font-size: 2rem;
+    }
+    .hero-content p {
+      margin: 0.5rem 0 0;
+      font-size: 1rem;
+      color: #ccc;
+    }
   </style>
 </head>
 <body>
-  <p id="ua-debug" style="font-size: 0.7rem; color: gray;"></p>
+  <p id="ua-debug" style="font-size: 0.7rem; color: gray; padding: 1rem;"></p>
 
-<div id="not-in-pi-browser" class="card">
+  <div id="not-in-pi-browser" class="card">
     <h2>Open in Pi Browser</h2>
     <p>This app must be opened inside the Pi Browser to log in and use Pi features.</p>
   </div>
 
-  <div id="login-section" class="card">
-    <h2>Welcome to Coinnect</h2>
+  <div id="login-section">
+  <div class="hero-image">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <h2>Welcome to Coinnect</h2>
+      <p>Rewards powered by crypto, starting with Pi</p>
+    </div>
+  </div>
+  <div class="card">
     <p>Login with your Pi Network account to continue.</p>
     <button onclick="loginWithPi()">Login with Pi</button>
   </div>
+</div>
 
   <div id="app-content" class="card">
     <h2>Hello, <span id="username"></span>!</h2>
@@ -37,136 +104,63 @@
     <button onclick="showRewards()">View My Rewards</button>
   </div>
 
-  <div id="directory-section" class="card">
-    <h2>Business Directory</h2>
-    <div class="business-card clickable" onclick="logVisit('SunGlow Tanning')">
-      <strong>SunGlow Tanning</strong><br>
-      ⭐⭐⭐⭐☆ (4.5)<br>
-      Accepts Pi: ✅<br>
-      Loyalty Offer: Earn 10 Pi for 5 visits
+  <div id="profile-section">
+    <div class="hero-image">
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <h2 id="profile-title">Business Name</h2>
+        <p id="profile-rating">⭐ 4.5</p>
+      </div>
     </div>
-    <div class="business-card clickable" onclick="logVisit('Crypto Café')">
-      <strong>Crypto Café</strong><br>
-      ⭐⭐⭐⭐☆ (4.2)<br>
-      Accepts Pi: ✅<br>
-      Loyalty Offer: Buy 4, get 1 coffee free
+    <div class="card">
+      <div id="profile-content"></div>
+      <button>Redeem</button>
+      <button onclick="showDirectory()" style="background: none; color: #ffb84d; margin-top: 1rem;">Back to Directory</button>
     </div>
-    <div class="business-card clickable" onclick="logVisit('Pi Style Barber')">
-      <strong>Pi Style Barber</strong><br>
-      ⭐⭐⭐☆☆ (3.9)<br>
-      Accepts Pi: ✅<br>
-      Loyalty Offer: 15% off after 3 visits
-    </div>
-    <button onclick="goBack()">Back to Home</button>
-  </div>
-
-  <div id="rewards-section" class="card">
-    <h2>My Rewards</h2>
-    <div id="rewards-container"></div>
-    <button onclick="goBack()">Back to Home</button>
-  </div>
-
-  <div id="profile-section" class="card">
-    <h2 id="profile-title">Business Profile</h2>
-    <div class="profile-card" id="profile-content"></div>
-    <button onclick="showDirectory()">Back to Directory</button>
   </div>
 
   <script>
     const scopes = ['username', 'payments'];
-    const businesses = {
-      "SunGlow Tanning": 5,
-      "Crypto Café": 4,
-      "Pi Style Barber": 3
-    };
-
     function isInPiBrowser() {
-  const isAvailable = typeof window.Pi !== 'undefined';
-  document.getElementById("ua-debug").innerText = isAvailable ? "Pi SDK found" : "Pi SDK not found";
-  return isAvailable;
-}
+      const isAvailable = typeof window.Pi !== 'undefined';
+      document.getElementById("ua-debug").innerText = isAvailable ? "Pi SDK found" : "Pi SDK not found";
+      return isAvailable;
+    }
 
     function loginWithPi() {
-  Pi.init({ version: "2.0" });
-  Pi.authenticate(scopes, function(auth) {
-    document.getElementById('login-section').style.display = 'none';
-    document.getElementById('app-content').style.display = 'block';
-    document.getElementById('username').innerText = auth.user.username;
-    document.getElementById('uid').innerText = auth.user.uid;
-  }, function(payment) {
-    console.log("Incomplete payment found:", payment);
-  });
-}
-
-function logVisit(business) {
-      let visits = JSON.parse(localStorage.getItem('rewards')) || {};
-      visits[business] = (visits[business] || 0) + 1;
-      localStorage.setItem('rewards', JSON.stringify(visits));
-      alert(`Visit logged for ${business}`);
+      Pi.init({ version: "2.0" });
+      Pi.authenticate(scopes, function(auth) {
+        document.getElementById('login-section').style.display = 'none';
+        document.getElementById('app-content').style.display = 'block';
+        document.getElementById('username').innerText = auth.user.username;
+        document.getElementById('uid').innerText = auth.user.uid;
+      }, function(payment) {
+        console.log("Incomplete payment found:", payment);
+      });
     }
 
-    function showRewards() {
+    function showProfile(name = "Stonecup Café") {
       hideAllSections();
-      const container = document.getElementById('rewards-container');
-      container.innerHTML = '';
-      const data = JSON.parse(localStorage.getItem('rewards')) || {};
-      for (const [biz, count] of Object.entries(data)) {
-        const goal = businesses[biz];
-        const percent = Math.min(Math.round((count / goal) * 100), 100);
-        container.innerHTML += `
-          <div class='reward-card'>
-            <strong>${biz}</strong><br>
-            ✅ ${count} of ${goal} visits completed<br>
-            Progress: ${'█'.repeat(percent / 10)}${'░'.repeat(10 - percent / 10)} (${percent}%)<br>
-            Reward: ${goal - count > 0 ? `${goal - count} more visits needed` : 'Ready to redeem!'}
-          </div>
-        `;
-      }
-      document.getElementById('rewards-section').style.display = 'block';
-    }
-
-    function showProfile(name) {
-      hideAllSections();
-      const content = {
-        "SunGlow Tanning": {
-          rating: "4.5",
-          offer: "Earn 10 Pi for 5 visits",
-          description: "Premium tanning salon with exclusive Pi loyalty rewards.",
-          acceptsPi: true
-        },
-        "Crypto Café": {
-          rating: "4.2",
-          offer: "Buy 4, get 1 coffee free",
-          description: "Modern café for crypto lovers. Wi-Fi, lattes, and Pi rewards!",
-          acceptsPi: true
-        },
-        "Pi Style Barber": {
-          rating: "3.9",
-          offer: "15% off after 3 visits",
-          description: "Trendy cuts, crypto talk, and loyalty bonuses in Pi.",
-          acceptsPi: true
+      const data = {
+        "Stonecup Café": {
+          rating: "4.6",
+          description: "A cozy local café offering specialty coffee, tea, and light fare served in a relaxed atmosphere. Popular with locals and visitors alike."
         }
       };
-      const biz = content[name];
-      document.getElementById('profile-title').innerText = name;
-      document.getElementById('profile-content').innerHTML = `
-        ⭐ Rating: ${biz.rating} ⭐<br>
-        📜 Offer: ${biz.offer}<br>
-        📍 Accepts Pi: ${biz.acceptsPi ? '✅' : '❌'}<br><br>
-        📝 ${biz.description}
+      const biz = data[name];
+      document.getElementById("profile-title").innerText = name;
+      document.getElementById("profile-rating").innerText = `⭐ ${biz.rating}`;
+      document.getElementById("profile-content").innerHTML = `
+        <h3>Description</h3>
+        <p>${biz.description}</p>
       `;
-      document.getElementById('profile-section').style.display = 'block';
-    }
-
-    function goBack() {
-      hideAllSections();
-      document.getElementById('app-content').style.display = 'block';
+      document.getElementById("profile-section").style.display = 'block';
     }
 
     function hideAllSections() {
       document.getElementById('app-content').style.display = 'none';
-      document.getElementById('directory-section').style.display = 'none';
-      document.getElementById('rewards-section').style.display = 'none';
+      document.getElementById('directory-section')?.style.display = 'none';
+      document.getElementById('rewards-section')?.style.display = 'none';
       document.getElementById('profile-section').style.display = 'none';
     }
 
