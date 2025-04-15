@@ -1,4 +1,3 @@
-
 // Updated with localStorage tracking for rewards
 <!DOCTYPE html>
 <html lang="en">
@@ -80,8 +79,8 @@
     };
 
     function isInPiBrowser() {
-      return window.location.hostname.endsWith("pi") || navigator.userAgent.includes("PiBrowser");
-    }
+  return navigator.userAgent.toLowerCase().includes("pi");
+}
 
     function loginWithPi() {
       Pi.init({ version: "2.0", sandbox: true });
