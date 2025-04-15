@@ -174,7 +174,7 @@
 <script src="https://sdk.minepi.com/pi-sdk.js"></script>
 <script>
 const scopes = ['username', 'payments'];
-const testMode = false;
+const testMode = true;
 
 function isInPiBrowser() {
   const isAvailable = typeof window.Pi !== 'undefined';
@@ -194,8 +194,8 @@ function loginWithPi() {
   Pi.authenticate(scopes, function(auth) {
     document.getElementById('login-section').style.display = 'none';
     document.getElementById('app-content').style.display = 'block';
-    document.getElementById('username').innerText = auth.user.username;
-    document.getElementById('uid').innerText = auth.user.uid;
+    document.getElementById('username').innerText = testMode ? 'TestUser' : auth.user.username;
+    document.getElementById('uid').innerText = testMode ? '123456789' : auth.user.uid;
   }, function(error) {
     alert("Authentication failed: " + error);
   });
