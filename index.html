@@ -4,7 +4,37 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Coinnect</title>
-  <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+  <script src="https://sdk.minepi.com/pi-sdk.js">function saveListing() {
+  const name = document.getElementById("biz-name").value.trim();
+  const rating = document.getElementById("biz-rating").value.trim();
+  const description = document.getElementById("biz-description").value.trim();
+  if (!name || !rating || !description) {
+    alert("Please complete all fields.");
+    return;
+  }
+  const listings = JSON.parse(localStorage.getItem("bizListings")) || {};
+  const image = document.getElementById("biz-image").value.trim();
+  const lat = document.getElementById("biz-lat").value.trim();
+  const lng = document.getElementById("biz-lng").value.trim();
+  listings[name] = { rating, description, image, lat, lng };
+  localStorage.setItem("bizListings", JSON.stringify(listings));
+  alert("Listing saved.");
+  showProfile(name);
+}
+function fillGeolocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(position) {
+      document.getElementById('biz-lat').value = position.coords.latitude.toFixed(6);
+      document.getElementById('biz-lng').value = position.coords.longitude.toFixed(6);
+    }, function(error) {
+      alert('Could not get location: ' + error.message);
+    });
+  } else {
+    alert('Geolocation not supported by this browser.');
+  }
+}
+
+$1
   <style>
     body {
       margin: 0;
@@ -104,6 +134,8 @@
     <button onclick="showDirectory()">Go to Business Directory</button>
     <button onclick="showRewards()">View My Rewards</button>
     <button onclick="showMap()">Find Nearby on Map</button>
+    <button onclick="showEditor()">Add a Business</button>
+    <button onclick="showBrowse()">Browse Listings</button>
   </div>
 
   <div id="profile-section">
@@ -133,25 +165,81 @@
   </div>
 
   <!-- Floating card carousel -->
-  <div style="position:absolute; bottom:6rem; left:0; right:0; display:flex; gap:1rem; overflow-x:auto; padding:1rem; z-index:3;">
-    <div style="min-width:280px; background:#112021; border-radius:16px; padding:1rem; box-shadow:0 4px 12px rgba(0,0,0,0.3);">
-      <p style="margin:0; color:#ffb84d; font-weight:bold;">Stonecup Café</p>
-      <p style="margin:0.25rem 0; color:#ccc; font-size:0.9rem;">⭐ 4.6 · 0.3 km</p>
-      <button style="margin-top:0.5rem; background:#ffb84d; border:none; padding:0.5rem 1rem; border-radius:8px; font-weight:bold; cursor:pointer; color:#000;">View</button>
-    </div>
-    <div style="min-width:280px; background:#112021; border-radius:16px; padding:1rem; box-shadow:0 4px 12px rgba(0,0,0,0.3);">
-      <p style="margin:0; color:#ffb84d; font-weight:bold;">Crypto Café</p>
-      <p style="margin:0.25rem 0; color:#ccc; font-size:0.9rem;">⭐ 4.3 · 0.6 km</p>
-      <button style="margin-top:0.5rem; background:#ffb84d; border:none; padding:0.5rem 1rem; border-radius:8px; font-weight:bold; cursor:pointer; color:#000;">View</button>
-    </div>
+  <div id="map-carousel" style="position:absolute; bottom:6rem; left:0; right:0; display:flex; gap:1rem; overflow-x:auto; padding:1rem; z-index:3;">
+    <!-- Dynamic content inserted here -->
   </div>
+
+  <script>
+    function populateMapCarousel() {
+  const container = document.getElementById("map-carousel");
+  container.innerHTML = "";
+  const listings = JSON.parse(localStorage.getItem("bizListings")) || {};
+  for (const [name, info] of Object.entries(listings)) {
+    const loc = info.lat && info.lng ? `<p style='color:#aaa; font-size:0.8rem;'>📍 ${info.lat}, ${info.lng}</p>` : '';
+    container.innerHTML += `
+      <div style="min-width:280px; background:#112021; border-radius:16px; padding:1rem; box-shadow:0 4px 12px rgba(0,0,0,0.3);">
+        <p style='margin:0; color:#ffb84d; font-weight:bold;'>${name}</p>
+        <p style='margin:0.25rem 0; color:#ccc; font-size:0.9rem;'>⭐ ${info.rating}</p>
+        ${info.image ? `<img src='${info.image}' alt='${name}' style='width:100%; border-radius:8px; margin-top:0.5rem;'>` : ''}
+        ${loc}
+        <button onclick='showProfile("${name}")' style='margin-top:0.5rem; background:#ffb84d; border:none; padding:0.5rem 1rem; border-radius:8px; font-weight:bold; cursor:pointer; color:#000;'>View</button>
+      </div>
+    `;
+  }
+};
+      for (const [name, info] of Object.entries(listings)) {
+        container.innerHTML += `
+          <div style="min-width:280px; background:#112021; border-radius:16px; padding:1rem; box-shadow:0 4px 12px rgba(0,0,0,0.3);">
+            <p style='margin:0; color:#ffb84d; font-weight:bold;'>${name}</p>
+            <p style='margin:0.25rem 0; color:#ccc; font-size:0.9rem;'>⭐ ${info.rating}</p>
+            ${info.image ? `<img src='${info.image}' alt='${name}' style='width:100%; border-radius:8px; margin-top:0.5rem;'>` : ''}
+            <button onclick='showProfile("${name}")' style='margin-top:0.5rem; background:#ffb84d; border:none; padding:0.5rem 1rem; border-radius:8px; font-weight:bold; cursor:pointer; color:#000;'>View</button>
+          </div>
+        `;
+      }
+    }
+  </script>
 
   <!-- Bottom Nav Button -->
   <button onclick="goBack()" style="position:absolute; bottom:1.5rem; left:50%; transform:translateX(-50%); background:#ffb84d; color:#000; padding:1rem 2rem; border:none; border-radius:8px; font-weight:bold; z-index:4;">Back</button>
 </div>
 
-<script>
-    const scopes = ['username', 'payments'];
+<!-- Business Owner Listing Editor -->
+<div id="editor-section" class="card" style="display:none;">
+  <h2>Business Listing Editor</h2>
+  <p style="color:#ccc">Submit or update a business listing</p>
+  <label>Name:<br><input type="text" id="biz-name" style="width:100%; padding:0.5rem; border-radius:8px; margin-bottom:1rem;"></label>
+  $1
+  <label>Description:<br><textarea id="biz-description" rows="4" style="width:100%; padding:0.5rem; border-radius:8px; margin-bottom:1rem;"></textarea></label>
+  <label>Latitude:<br><input type="number" id="biz-lat" step="any" style="width:100%; padding:0.5rem; border-radius:8px; margin-bottom:1rem;"></label>
+  $1
+  <button onclick="fillGeolocation()" style="background:#444; color:#ffb84d; margin-bottom:1rem;">Use My Location</button>
+  <label>Image URL:<br><input type="url" id="biz-image" placeholder="https://..." style="width:100%; padding:0.5rem; border-radius:8px; margin:1rem 0;"></label>
+  <div id="image-preview" style="margin-top:1rem;"></div>
+  $1
+  $1
+  <div id="image-preview" style="margin-top:1rem;"></div>
+  <button onclick="saveListing()">Save Listing</button>
+  <button onclick="goBack()" style="background:none; color:#ffb84d; margin-top:1rem;">Back</button>
+</div>
+
+<!-- Business Listings Browser -->
+<div id="browse-section" class="card" style="display:none;">
+  <h2>Browse Businesses</h2>
+  <div id="biz-listings"></div>
+  <button onclick="goBack()" style="background:none; color:#ffb84d; margin-top:1rem;">Back</button>
+</div>
+$1
+    document.getElementById("biz-image").addEventListener("input", function() {
+      const url = this.value.trim();
+      const preview = document.getElementById("image-preview");
+      if (url && (url.startsWith("http://") || url.startsWith("https://"))) {
+        preview.innerHTML = `<img src="${url}" alt="preview" style="width:100%; border-radius:12px;">`;
+      } else {
+        preview.innerHTML = '';
+      }
+    });
+const scopes = ['username', 'payments'];
     function isInPiBrowser() {
       const isAvailable = typeof window.Pi !== 'undefined';
       document.getElementById("ua-debug").innerText = isAvailable ? "Pi SDK found" : "Pi SDK not found";
@@ -159,11 +247,35 @@
     }
 
     function showMap() {
-      hideAllSections();
-      document.getElementById('map-section').style.display = 'block';
-    }
+  hideAllSections();
+  document.getElementById('map-section').style.display = 'block';
+  populateMapCarousel();
+}
 
-    function loginWithPi() {
+    function showEditor() {
+  hideAllSections();
+  document.getElementById('editor-section').style.display = 'block';
+}
+
+function showBrowse() {
+  hideAllSections();
+  const container = document.getElementById("biz-listings");
+  const listings = JSON.parse(localStorage.getItem("bizListings")) || {};
+  container.innerHTML = Object.keys(listings).length === 0 ? '<p>No listings found.</p>' : '';
+  for (const [name, info] of Object.entries(listings)) {
+    container.innerHTML += `
+      <div class='business-card clickable' onclick='showProfile("${name}")'>
+        <strong>${name}</strong><br>
+        ⭐ ${info.rating}<br>
+        ${info.image ? `<img src='${info.image}' style='width:100%; margin-top:0.5rem; border-radius:8px;'>` : ''}
+        <p style='margin-top:0.5rem;'>${info.description}</p>
+      </div>
+    `;
+  }
+  document.getElementById('browse-section').style.display = 'block';
+}
+
+function loginWithPi() {
       Pi.init({ version: "2.0" });
       Pi.authenticate(scopes, function(auth) {
         document.getElementById('login-section').style.display = 'none';
@@ -176,12 +288,18 @@
     }
 
     function showProfile(name = "Stonecup Café") {
-      hideAllSections();
-      const data = {
-        "Stonecup Café": {
-          rating: "4.6",
-          description: "A cozy local café offering specialty coffee, tea, and light fare served in a relaxed atmosphere. Popular with locals and visitors alike."
-        }
+  hideAllSections();
+  const data = JSON.parse(localStorage.getItem("bizListings")) || {};
+  const biz = data[name] || { rating: "N/A", description: "No description available." };
+  document.getElementById("profile-title").innerText = name;
+  document.getElementById("profile-rating").innerText = `⭐ ${biz.rating}`;
+  document.getElementById("profile-content").innerHTML = `
+    <h3>Description</h3>
+    <p>${biz.description}</p>
+  ${biz.image ? `<img src="${biz.image}" alt="${name}" style="width:100%; border-radius:12px; margin-top:1rem;">` : ''}
+  `;
+  document.getElementById("profile-section").style.display = 'block';
+}
       };
       const biz = data[name];
       document.getElementById("profile-title").innerText = name;
@@ -194,6 +312,8 @@
     }
 
     function hideAllSections() {
+  document.getElementById('browse-section')?.style.display = 'none';
+  document.getElementById('editor-section')?.style.display = 'none';
       document.getElementById('map-section')?.style.display = 'none';
       document.getElementById('app-content').style.display = 'none';
       document.getElementById('directory-section')?.style.display = 'none';
