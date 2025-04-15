@@ -81,9 +81,9 @@
     };
 
     function isInPiBrowser() {
-  const ua = navigator.userAgent.toLowerCase();
-  document.getElementById("ua-debug").innerText = ua;
-  return ua.includes("pibrowser");
+  const isAvailable = typeof window.Pi !== 'undefined';
+  document.getElementById("ua-debug").innerText = isAvailable ? "Pi SDK found" : "Pi SDK not found";
+  return isAvailable;
 }
 
     function loginWithPi() {
